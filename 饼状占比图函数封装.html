@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+		canvas {
+			border: 1px solid #ccc;
+		}
+	</style>
+</head>
+<body>
+	<canvas width="600px" height="400px" id="cas"></canvas>
+	<script>
+		    var cas = document.getElementById("cas");
+			var ctx = cas.getContext('2d');
+			function toAngle(radian) {
+				return radian * 180 / Math.PI;
+			}
+			function toRadian(angle) {
+				return angle * Math.PI / 180;
+			}
+
+                var datas =  [
+				 { "num": 80, "name": "百度" },
+				 { "num": 72, "name": "阿里巴巴" },
+				 { "num": 90, "name": "腾讯" },
+				 { "num": 34, "name": "奇虎360" },
+				 { "num": 12, "name": "金山" },
+				 { "num": 57, "name": "小米" },
+			     { "num": 50, "name": "华为" }
+			     ];
+
+                var colors = "Crimson,DarkMagenta,Indigo,MediumSlateBlue,DeepSkyBlu,ForestGreen,SandyBrown";
+
+            piePercent(datas,{
+                startAngle:90,
+                redius:100,
+                x0:cas.width/2,
+                y0:cas.height/2,
+                rose:true
+            },colors);
+
+            function piePercent (array,config,colors){
+            var datas = array;
+                //[
+				// { "num": 30, "name": "体育" },
+				// { "num": 72, "name": "生物" },
+				// { "num": 90, "name": "化学" },
+				// { "num": 100, "name": "物理" },
+				// { "num": 150, "name": "英语" },
+				// { "num": 150, "name": "数学" },
+				// { "num": 150, "name": "语文" }
+			    // ];
+			var maxNum = Math.max.apply(null,datas.map(function(v,i){
+						return v.num;
+			}));
+			
+			//定义起始角度
+		    var startAngle = config.startAngle;
+			//定义圆的半径
+			var redius = config.redius;
+			var rose = config.rose;
+			
+			//定义圆心的坐标
+			var circleX = config.x0;
+			var circleY = config.y0;
+			//定义引线超出饼状图的距离
+			var outLine = 50;
+
+			//颜色数据
+			var colors = colors.split(',');
+			//求数据中num的合；
+			var total = 0;
+			datas.forEach(function (v, i) {
+				total += v.num;
+				
+			});
+			//将一些datas中没有的有关的数据放入一个新数组newDatas中,这个数组包含以前数组的所有内容；
+
+
+			if(rose){
+				var newDatas = datas.map(function (v, i) {
+					v["percent"] = v.num / total;
+					v["startAngle"] = startAngle;
+					v["endAngle"] = startAngle += v["percent"] * 360;
+					v["fillStyle"] = colors[i];
+					v["strokeStyle"] = colors[i];
+					v["redius"] = redius;
+					v["lineLength"] = v["redius"] + outLine;
+
+					return v;
+				});
+			}else{
+				var newDatas = datas.map(function (v, i) {
+					v["percent"] = v.num / total;
+					v["startAngle"] = startAngle;
+					v["endAngle"] = startAngle += v["percent"] * 360;
+					v["fillStyle"] = colors[i];
+					v["strokeStyle"] = colors[i];
+					v["redius"] = redius*v.num/maxNum;
+					v["lineLength"] = v["redius"] + outLine;
+
+					return v;
+				});
+			}
+			
+		
+			var textPadding = 5;
+			var lineWidth = 50;
+				
+			//绘制饼形图
+			newDatas.forEach(function (v,i){
+				ctx.beginPath();
+				ctx.fillStyle = v.fillStyle;
+				ctx.moveTo(circleX,circleY);
+				ctx.arc(circleX,circleY,v.redius,toRadian(v.startAngle),toRadian(v.endAngle));
+				ctx.fill();
+				
+				var desc = v.name+(v.percent*100).toFixed(2)+"%";
+					lineWidth = ctx.measureText(desc).width+textPadding*2;
+				//绘制引线
+				ctx.beginPath();
+				var lineAngle = v.startAngle + (v.endAngle - v.startAngle)/2;
+				
+				
+				var textLineX = Math.cos(toRadian(lineAngle))*v.lineLength+circleX;
+				var textLineY = Math.sin(toRadian(lineAngle))*v.lineLength +circleY;
+				
+				var textEndY = textLineY;
+				
+				ctx.strokeStyle = v.strokeStyle;
+				ctx.moveTo(circleX,circleY);
+				ctx.lineTo(textLineX,textLineY);
+				
+				
+				var isRirht = true;
+				if(lineAngle>-90&&lineAngle<90){
+					var textEndX = 	textLineX +lineWidth;
+					ctx.lineTo(textEndX,textEndY);
+					ctx.textAlign = "left";
+					isRirht = true;
+				}else {
+					var textEndX = 	textLineX -lineWidth;
+					ctx.lineTo(textEndX,textEndY);
+					ctx.textAlign = "right"
+					isRirht = false;
+				}
+				ctx.stroke();
+
+				//绘制文字
+				
+				ctx.beginPath();
+				ctx.fillStyle = "black";
+				if(isRirht){
+					ctx.fillText(desc,textLineX+textPadding,textLineY - textPadding);
+				}else{
+					ctx.fillText(desc,textLineX-textPadding,textLineY - textPadding);
+					
+				}
+				
+			});
+            };
+			
+	</script>
+</body>
+</html>
